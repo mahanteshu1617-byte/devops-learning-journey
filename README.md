@@ -40,5 +40,27 @@ My hands-on DevOps learning path — building real infrastructure on AWS with Te
 - Tested SSH login + browser access
 - Full lifecycle: init → validate → plan → apply → verify → destroy
 
+---
+
+## Lab 4 — Screenshots (Proof of Work)
+
+### VPC — Custom 3-Tier Network
+![VPC](screenshots/01-vpc.png)
+
+### Subnets — Public, App, Data
+![Subnets](screenshots/02-subnets.png)
+
+### Route Tables — Public has 0.0.0.0/0 → IGW
+![Route Tables](screenshots/04-route-tables.png)
+
+### Security Groups — 4 SGs with chained rules
+![Security Groups](screenshots/05-security-groups.png)
+
+### EC2 Instance — hca-web-server running
+![EC2 Instance](screenshots/06-ec2-instance.png)
+
+### Nginx Live — serving over HTTP
+![Nginx Live](screenshots/07-nginx-live.png)
+
 ## Author
 Mahanthesha | Cloud Infra Engineer (in transition)
