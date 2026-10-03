@@ -156,3 +156,81 @@ resource "aws_security_group" "db_sg" {
 
   tags = { Name = "hca-db-sg" }
 }
+
+# ═══════════════════════════════════════════
+# EC2 — Web Server in Public Subnet
+# ═══════════════════════════════════════════
+
+# ─── SSH KEY PAIR ───
+# This creates an AWS key pair from a public key you provide.
+# Save the private key to your laptop and use it to SSH.
+resource "aws_key_pair" "hca_key" {
+  key_name   = "hca-web-key"
+  public_key = file("~/.ssh/hca-web-key.pub")
+
+  tags = { Name = "hca-web-key" }
+}
+
+# ─── WEB SECURITY GROUP ───
+# Instance-level firewall. Allows SSH (22) and HTTP (80) from internet.
+resource "aws_security_group" "web_sg" {
+  name        = "hca-web-sg"
+  description = "Allow SSH and HTTP from internet"
+  vpc_id      = aws_vpc.hca_vpc.id
+
+  ingress {
+    description = "SSH from my IP only"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # ⚠️ in prod: restrict to office IP
+  }
+
+  ingress {
+    description = "HTTP from internet"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow all outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = { Name = "hca-web-sg" }
+}
+
+# ─── EC2 INSTANCE ───
+# The web server. user_data installs nginx on first boot.
+resource "aws_instance" "hca_web" {
+  ami                    = "ami-0fa52f1a01deb1658"  # Ubuntu 22.04 in ap-south-1
+  instance_type          = "t3.micro"
+  subnet_id              = aws_subnet.hca_public_subnet.id
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  key_name               = aws_key_pair.hca_key.key_name
+
+  user_data = <<-EOF
+    #!/bin/bash
+    apt-get update -y
+    apt-get install -y nginx
+    echo "<h1>HCA Web Server - $(hostname -f)</h1>" > /var/www/html/index.html
+    systemctl start nginx
+    systemctl enable nginx
+  EOF
+
+  tags = { Name = "hca-web-server" }
+}
+
+# ─── ELASTIC IP ───
+# Stable public IP that survives restarts.
+resource "aws_eip" "hca_web_eip" {
+  instance = aws_instance.hca_web.id
+  domain   = "vpc"
+
+  tags = { Name = "hca-web-eip" }
+}

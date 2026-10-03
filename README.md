@@ -30,5 +30,15 @@ My hands-on DevOps learning path — building real infrastructure on AWS with Te
 - **CLI:** AWS CLI v2
 - **Environment:** WSL2 Ubuntu 24.04
 
+### Lab 4 — EC2 Web Server in VPC
+- Deployed t3.micro Ubuntu 22.04 EC2 in public subnet
+- SSH key pair via `aws_key_pair`
+- Security group `hca-web-sg` — ports 22 (SSH) + 80 (HTTP)
+- `user_data` bootstrap: installs nginx, creates landing page
+- Elastic IP `hca-web-eip` for stable public addressing
+- Verified: `curl http://<eip>` returns nginx page
+- Tested SSH login + browser access
+- Full lifecycle: init → validate → plan → apply → verify → destroy
+
 ## Author
 Mahanthesha | Cloud Infra Engineer (in transition)
